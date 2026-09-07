@@ -1,1 +1,1078 @@
+import re
 
+from langdetect import detect, LangDetectException, DetectorFactory
+from textblob import TextBlob
+from deep_translator import GoogleTranslator
+
+
+# Чтобы langdetect давал одинаковый результат
+# при повторном запуске
+DetectorFactory.seed = 0
+
+
+# 1. ПОДСЧЁТ СЛОГОВ
+
+def count_syllables_ru(text: str) -> int:
+    """
+    Подсчёт слогов в русском тексте.
+
+    Для учебного проекта используется упрощённое правило:
+    количество гласных букв примерно соответствует
+    количеству слогов.
+    """
+
+    vowels = set(
+        "аеёиоуыэюяАЕЁИОУЫЭЮЯ"
+    )
+
+    return max(
+        1,
+        sum(
+            1
+            for char in text
+            if char in vowels
+        )
+    )
+
+
+def count_syllables_en(text: str) -> int:
+    """
+    Подсчёт слогов в английском тексте.
+
+    Используется упрощённый алгоритм
+    с несколькими словами-исключениями.
+    """
+
+    text = text.lower()
+
+    exceptions = {
+        "beautiful": 3,
+        "people": 2,
+        "business": 2,
+        "different": 3,
+        "family": 3,
+        "every": 2,
+        "favorite": 3,
+        "chocolate": 3,
+        "comfortable": 4,
+        "interesting": 3,
+        "restaurant": 3,
+        "temperature": 4,
+        "education": 4,
+        "environment": 4,
+        "information": 4
+    }
+
+    if text in exceptions:
+        return exceptions[text]
+
+    vowels = set("aeiouy")
+
+    count = 0
+    prev_is_vowel = False
+
+    for char in text:
+
+        if char in vowels:
+
+            if not prev_is_vowel:
+                count += 1
+
+            prev_is_vowel = True
+
+        else:
+            prev_is_vowel = False
+
+    # Немая e в конце слова
+    if text.endswith("e") and count > 1:
+        count -= 1
+
+    # Упрощённая обработка окончания -le
+    if text.endswith("le") and len(text) > 2:
+        count += 1
+
+    return max(1, count)
+
+
+def count_syllables_de(text: str) -> int:
+    """
+    Подсчёт слогов в немецком тексте.
+
+    Используется упрощённый алгоритм
+    с исключениями.
+    """
+
+    text = text.lower()
+
+    exceptions = {
+        "hallo": 2,
+        "deutsch": 1,
+        "liebe": 2,
+        "bitte": 2,
+        "danke": 2,
+        "machen": 2,
+        "lehrer": 2,
+        "schule": 2,
+        "apfel": 2,
+        "freund": 1,
+        "familie": 3,
+        "computer": 3,
+        "telefon": 3,
+        "universität": 5,
+        "freundschaft": 2
+    }
+
+    if text in exceptions:
+        return exceptions[text]
+
+    vowels = set(
+        "aeiouyäöü"
+    )
+
+    count = 0
+    prev_is_vowel = False
+
+    for char in text:
+
+        if char in vowels:
+
+            if not prev_is_vowel:
+                count += 1
+
+            prev_is_vowel = True
+
+        else:
+            prev_is_vowel = False
+
+    return max(1, count)
+
+
+def count_syllables_fr(text: str) -> int:
+    """
+    Подсчёт слогов во французском тексте.
+
+    Используется упрощённый алгоритм
+    с исключениями.
+    """
+
+    text = text.lower()
+
+    exceptions = {
+        "bonjour": 2,
+        "ordinateur": 4,
+        "français": 2,
+        "france": 1,
+        "femme": 1,
+        "monsieur": 2,
+        "beaucoup": 2,
+        "oiseau": 2,
+        "eau": 1,
+        "fille": 1,
+        "garçon": 2,
+        "maison": 2,
+        "voiture": 2,
+        "école": 2,
+        "famille": 2,
+        "question": 2,
+        "important": 3,
+        "maintenant": 3,
+        "aujourd'hui": 3
+    }
+
+    if text in exceptions:
+        return exceptions[text]
+
+    vowels = set(
+        "aeiouyàâäéèêëîïôöùûüÿ"
+    )
+
+    count = 0
+    prev_is_vowel = False
+
+    for char in text:
+
+        if char in vowels:
+
+            if not prev_is_vowel:
+                count += 1
+
+            prev_is_vowel = True
+
+        else:
+            prev_is_vowel = False
+
+    return max(1, count)
+
+
+
+# 2. ОПРЕДЕЛЕНИЕ ЯЗЫКА
+
+def detect_language(text: str) -> str:
+    """
+    Определяет язык текста с помощью langdetect.
+
+    Возвращает:
+    ru - русский
+    en - английский
+    de - немецкий
+    fr - французский
+    unknown - если язык определить не удалось.
+    """
+
+    try:
+
+        language = detect(text)
+
+        return language
+    
+    except LangDetectException:
+
+        return "unknown"
+
+
+
+# 3. РАЗБИЕНИЕ ТЕКСТА НА ПРЕДЛОЖЕНИЯ И СЛОВА
+
+
+def split_sentences(text: str) -> list[str]:
+    """
+    Разбивает текст на предложения.
+
+    Для учебного проекта используются
+    знаки . ! ?
+    """
+
+    sentences = re.split(
+        r'[.!?]+',
+        text
+    )
+
+    return [
+        sentence.strip()
+        for sentence in sentences
+        if sentence.strip()
+    ]
+
+
+def split_words(text: str) -> list[str]:
+    """
+    Извлекает слова из текста.
+    """
+
+    return re.findall(
+        r'\b[\wёЁа-яА-Яa-zA-Z]+\b',
+        text,
+        re.UNICODE
+    )
+
+
+# 4. АНАЛИЗ ТОНАЛЬНОСТИ
+
+
+def analyze_sentiment(
+    text: str,
+    lang: str
+) -> tuple[str, float, str]:
+    """
+    Определяет тональность и субъективность текста.
+
+    Для английского текста TextBlob используется напрямую.
+
+    Для русского, немецкого и французского текста
+    сначала выполняется перевод на английский язык,
+    после чего переведённый текст анализируется через TextBlob.
+
+    Возвращает:
+    - тональность;
+    - субъективность в процентах;
+    - дополнительное сообщение.
+    """
+
+    note = ""
+
+    # Если текст не на английском,
+    # переводим его на английский
+
+    if lang != "en":
+
+        if lang not in {"ru", "de", "fr"}:
+
+            return (
+                "Нейтральная",
+                0.0,
+                "Язык не поддерживается для перевода"
+            )
+
+        try:
+            sentences = re.split(r'(?<=[.!?])\s+', text)
+
+            translated_sentences = []
+
+            for sentence in sentences:
+                if sentence.strip():
+                    translated_sentence = GoogleTranslator(
+                        source=lang,
+                        target="en"
+                    ).translate(sentence)
+                    translated_sentences.append(translated_sentence)
+
+            translated_text = " ".join(translated_sentences)
+
+            note = (
+                "Текст был переведён на английский "
+                "перед анализом TextBlob."
+            )
+
+        except Exception as error:
+            return (
+                "Нейтральная",
+                0.0,
+                "Не удалось выполнить перевод: "
+                + str(error)
+            )
+
+    # Анализируем текст через TextBlob
+
+    blob = TextBlob(
+        translated_text
+    )
+
+    polarity = blob.sentiment.polarity
+
+    subjectivity = (
+        blob.sentiment.subjectivity * 100
+    )
+
+    # Определяем категорию тональности
+
+    if polarity > 0.1:
+
+        sentiment = "Позитивная"
+
+    elif polarity < -0.1:
+
+        sentiment = "Негативная"
+
+    else:
+
+        sentiment = "Нейтральная"
+
+    return (
+        sentiment,
+        subjectivity,
+        note
+    )
+
+
+
+# 5. ОСНОВНАЯ СТАТИСТИКА ТЕКСТА
+
+
+def get_text_stats(text: str) -> dict:
+    """
+    Вычисляет статистику текста:
+
+    - количество предложений;
+    - количество слов;
+    - количество слогов;
+    - среднюю длину предложения;
+    - среднюю длину слова;
+    - язык.
+    """
+
+    sentences = split_sentences(text)
+
+    words = split_words(text)
+
+    word_count = len(words)
+
+    sentence_count = len(sentences)
+
+    # Определяем язык
+
+    lang = detect_language(text)
+
+    # Функции подсчёта слогов
+    # для разных языков
+
+    syllable_functions = {
+        "ru": count_syllables_ru,
+        "en": count_syllables_en,
+        "de": count_syllables_de,
+        "fr": count_syllables_fr
+    }
+
+    syllable_function = syllable_functions.get(
+        lang
+    )
+
+    # Если язык неизвестен,
+    # используем английский алгоритм
+    # как резервный вариант
+
+    if syllable_function is None:
+
+        syllable_function = count_syllables_en
+
+    total_syllables = sum(
+        syllable_function(word)
+        for word in words
+    )
+
+    # Средняя длина предложения
+
+    if sentence_count:
+
+        avg_sentence_length = (
+            word_count
+            / sentence_count
+        )
+
+    else:
+
+        avg_sentence_length = 0.0
+
+    # Средняя длина слова
+
+    if word_count:
+
+        avg_word_length = (
+            sum(
+                len(word)
+                for word in words
+            )
+            / word_count
+        )
+
+    else:
+
+        avg_word_length = 0.0
+
+    return {
+        "sentences": sentence_count,
+        "words": word_count,
+        "syllables": total_syllables,
+        "avg_sentence_length":
+            avg_sentence_length,
+        "avg_word_length":
+            avg_word_length,
+        "language": lang
+    }
+
+
+
+# 6. ИНДЕКС ФЛЕША
+
+
+def flesch_index(
+    stats: dict,
+    lang: str
+) -> float:
+    """
+    Вычисляет индекс Флеша.
+
+    Коэффициенты зависят от языка.
+    """
+
+    words = stats["words"]
+
+    sentences = stats["sentences"]
+
+    syllables = stats["syllables"]
+
+    if words == 0 or sentences == 0:
+
+        return 0.0
+
+    coefficients = {
+
+        "en": (
+            206.835,
+            1.015,
+            84.6
+        ),
+
+        "ru": (
+            206.835,
+            1.3,
+            60.1
+        ),
+
+        "de": (
+            206.835,
+            0.942,
+            82.3
+        ),
+
+        "fr": (
+            207.0,
+            1.015,
+            73.6
+        )
+    }
+
+    A, B, C = coefficients.get(
+        lang,
+        coefficients["en"]
+    )
+
+    score = (
+        A
+        - B * (
+            words / sentences
+        )
+        - C * (
+            syllables / words
+        )
+    )
+
+    return score
+
+
+
+# 7. ИНТЕРПРЕТАЦИЯ ИНДЕКСА ФЛЕША
+
+
+def interpret_flesch(
+    score: float
+) -> str:
+    """
+    Интерпретирует индекс Флеша
+    согласно таблице из задания.
+    """
+
+    if score > 80:
+
+        return (
+            "Очень легко "
+            "(для младших школьников)"
+        )
+
+    elif score > 50:
+
+        return (
+            "Просто "
+            "(для школьников)"
+        )
+
+    elif score > 25:
+
+        return (
+            "Немного трудно "
+            "(для студентов)"
+        )
+
+    else:
+
+        return (
+            "Трудно "
+            "(для выпускников вузов)"
+        )
+
+
+
+# 8. ИНДЕКС ФЛЕША-КИНКЕЙДА
+
+def flesch_kincaid(
+    stats: dict,
+    lang: str
+) -> float:
+    """
+    Вычисляет индекс Флеша-Кинкейда.
+
+    Формула использует среднюю длину предложения
+    и среднее количество слогов на слово.
+    """
+
+    words = stats["words"]
+
+    sentences = stats["sentences"]
+
+    syllables = stats["syllables"]
+
+    if words == 0 or sentences == 0:
+
+        return 0.0
+
+    score = (
+        0.39
+        * (words / sentences)
+        + 11.8
+        * (syllables / words)
+        - 15.59
+    )
+
+    return score
+
+
+
+# 9. ЛЕКСИЧЕСКОЕ РАЗНООБРАЗИЕ
+
+
+def lexical_diversity(
+    text: str
+) -> float:
+    """
+    Вычисляет лексическое разнообразие.
+
+    Формула:
+
+    количество уникальных слов /
+    количество всех слов.
+    """
+
+    words = split_words(text)
+
+    if not words:
+
+        return 0.0
+
+    unique_words = set(
+        word.lower()
+        for word in words
+    )
+
+    return (
+        len(unique_words)
+        / len(words)
+    )
+
+
+
+# 10. ПЛОТНОСТЬ РЕДКИХ СЛОВ
+
+
+def rare_word_density(
+    text: str,
+    freq_dict: dict
+) -> float | None:
+    """
+    Вычисляет плотность редких слов.
+
+    Слово считается редким, если его нет
+    в переданном частотном словаре.
+
+    Если частотный словарь пустой,
+    возвращается None.
+    """
+
+    words = split_words(text)
+
+    if not words:
+
+        return 0.0
+
+    if not freq_dict:
+
+        return None
+
+    rare_words = 0
+
+    for word in words:
+
+        word = word.lower()
+
+        if word not in freq_dict:
+
+            rare_words += 1
+
+    return (
+        rare_words
+        / len(words)
+    )
+
+
+
+# 11. ЗАГРУЗКА ЧАСТОТНОГО СЛОВАРЯ
+
+
+def load_frequency_dictionary(
+    filename: str
+) -> dict:
+    """
+    Загружает частотный словарь из текстового файла.
+
+    Каждая строка файла должна содержать слово.
+    Например:
+
+    the
+    and
+    of
+    to
+    """
+
+    frequency_dict = {}
+
+    try:
+
+        with open(
+            filename,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            for line in file:
+
+                word = line.strip().lower()
+
+                if word:
+
+                    frequency_dict[word] = 1
+
+    except FileNotFoundError:
+
+        return {}
+
+    return frequency_dict
+
+
+
+# 12. ПРОВЕРКА ТЕКСТА
+
+def validate_text(
+    text: str
+) -> bool:
+    """
+    Проверяет введённый текст.
+
+    Проверяется:
+    - отсутствие пустого текста;
+    - максимальный размер 10000 символов.
+    """
+
+    if not text or not text.strip():
+
+        return False
+
+    if len(text) > 10000:
+
+        return False
+
+    return True
+
+
+
+# 13. ПОЛНЫЙ АНАЛИЗ ТЕКСТА
+
+
+def analyze_text(
+    text: str,
+    freq_dict: dict | None = None
+) -> dict:
+    """
+    Выполняет полный анализ текста.
+    """
+
+    # Проверяем текст
+
+    if not validate_text(text):
+
+        return {
+            "error":
+                "Текст пустой "
+                "или превышает "
+                "допустимый размер "
+                "(10000 символов)."
+        }
+
+    # Если словарь не передан,
+    # используем пустой словарь
+
+    if freq_dict is None:
+
+        freq_dict = {}
+
+    # Определение языка
+
+    lang = detect_language(text)
+
+    # Статистика
+
+    stats = get_text_stats(text)
+
+    # Индекс Флеша
+
+    flesch = flesch_index(
+        stats,
+        lang
+    )
+
+    # Интерпретация Флеша
+
+    interpretation = interpret_flesch(
+        flesch
+    )
+
+    # Флеш-Кинкейд
+
+    kincaid = flesch_kincaid(
+        stats,
+        lang
+    )
+
+    # Тональность
+
+    sentiment, subjectivity, sentiment_note = (
+        analyze_sentiment(
+            text,
+            lang
+        )
+    )
+
+    # Лексическое разнообразие
+
+    diversity = lexical_diversity(
+        text
+    )
+
+    # Плотность редких слов
+
+    rare_density = rare_word_density(
+        text,
+        freq_dict
+    )
+
+    # Возвращаем все результаты
+
+    return {
+
+        "language": lang,
+
+        "sentences":
+            stats["sentences"],
+
+        "words":
+            stats["words"],
+
+        "syllables":
+            stats["syllables"],
+
+        "avg_sentence_length":
+            stats["avg_sentence_length"],
+
+        "avg_word_length":
+            stats["avg_word_length"],
+
+        "flesch_index":
+            flesch,
+
+        "flesch_interpretation":
+            interpretation,
+
+        "flesch_kincaid":
+            kincaid,
+
+        "sentiment":
+            sentiment,
+
+        "subjectivity":
+            subjectivity,
+
+        "sentiment_note":
+            sentiment_note,
+
+        "lexical_diversity":
+            diversity,
+
+        "rare_word_density":
+            rare_density
+    }
+
+
+# 14. ВЫВОД РЕЗУЛЬТАТОВ
+
+def print_results(
+    result: dict
+) -> None:
+    """
+    Красиво выводит результаты анализа.
+    """
+
+    if "error" in result:
+
+        print()
+        print("ОШИБКА:")
+        print(result["error"])
+
+        return
+
+    print()
+    print("=" * 60)
+    print("РЕЗУЛЬТАТЫ АНАЛИЗА ТЕКСТА")
+    print("=" * 60)
+
+    print()
+
+    print(
+        f"Язык: "
+        f"{result['language']}"
+    )
+
+    print(
+        f"Количество предложений: "
+        f"{result['sentences']}"
+    )
+
+    print(
+        f"Количество слов: "
+        f"{result['words']}"
+    )
+
+    print(
+        f"Количество слогов: "
+        f"{result['syllables']}"
+    )
+
+    print(
+        f"Средняя длина предложения: "
+        f"{result['avg_sentence_length']:.2f} слов"
+    )
+
+    print(
+        f"Средняя длина слова: "
+        f"{result['avg_word_length']:.2f} символов"
+    )
+
+    print()
+    print("-" * 60)
+    print("ЧИТАЕМОСТЬ")
+    print("-" * 60)
+
+    print(
+        f"Индекс Флеша: "
+        f"{result['flesch_index']:.2f}"
+    )
+
+    print(
+        f"Интерпретация: "
+        f"{result['flesch_interpretation']}"
+    )
+
+    print(
+        f"Индекс Флеша-Кинкейда: "
+        f"{result['flesch_kincaid']:.2f}"
+    )
+
+    print()
+    print("-" * 60)
+    print("ТОНАЛЬНОСТЬ")
+    print("-" * 60)
+
+    print(
+        f"Тональность: "
+        f"{result['sentiment']}"
+    )
+
+    print(
+        f"Субъективность: "
+        f"{result['subjectivity']:.2f}%"
+    )
+
+    if result["sentiment_note"]:
+
+        print(
+            f"Примечание: "
+            f"{result['sentiment_note']}"
+        )
+
+    print(
+        f"Лексическое разнообразие: "
+        f"{result['lexical_diversity']:.2f}"
+    )
+
+    rare_density = (
+        result["rare_word_density"]
+    )
+
+    if rare_density is None:
+
+        print(
+            "Плотность редких слов: "
+            "не рассчитана"
+        )
+
+        print(
+            "(не загружен частотный словарь)"
+        )
+
+    else:
+
+        print(
+            f"Плотность редких слов: "
+            f"{rare_density:.2f}"
+        )
+
+    print()
+    print("=" * 60)
+
+
+# 15. ЗАПУСК ПРОГРАММЫ
+
+def main():
+    """
+    Основная функция программы.
+    """
+
+    print("=" * 60)
+    print("ПРОГРАММА АНАЛИЗА ТЕКСТА")
+    print("=" * 60)
+
+    print()
+    print(
+        "Программа определяет язык текста,"
+    )
+
+    print(
+        "вычисляет статистику, индекс Флеша,"
+    )
+
+    print(
+        "индекс Флеша-Кинкейда,"
+    )
+
+    print(
+        "тональность, субъективность"
+    )
+
+    print(
+        "и дополнительные метрики."
+    )
+
+    print()
+    print("-" * 60)
+
+    # Ввод текста
+
+    print(
+        "Введите текст для анализа."
+    )
+
+    print(
+        "Для завершения ввода нажмите Enter."
+    )
+
+    print()
+
+    text = input(
+        "Текст: "
+    )
+
+    # Анализ
+
+    result = analyze_text(
+        text
+    )
+
+    # Вывод
+
+    print_results(
+        result
+    )
+
+if __name__ == "__main__":
+    main()
+
+    print()
+    print("-" * 60)
+    print("ДОПОЛНИТЕЛЬНЫЕ МЕТРИКИ")
+    print("-" * 60)
