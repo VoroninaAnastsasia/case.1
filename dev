@@ -10,7 +10,7 @@ from deep_translator import GoogleTranslator
 DetectorFactory.seed = 0
 
 
-# 1. ПОДСЧЁТ СЛОГОВ
+#  Подсчет слогов.
 
 def count_syllables_ru(text: str) -> int:
     """
@@ -205,7 +205,7 @@ def count_syllables_fr(text: str) -> int:
 
 
 
-# 2. ОПРЕДЕЛЕНИЕ ЯЗЫКА
+#  Определение языка.
 
 def detect_language(text: str) -> str:
     """
@@ -231,7 +231,7 @@ def detect_language(text: str) -> str:
 
 
 
-# 3. РАЗБИЕНИЕ ТЕКСТА НА ПРЕДЛОЖЕНИЯ И СЛОВА
+#  Разбиение текста на предложения и слова.
 
 
 def split_sentences(text: str) -> list[str]:
@@ -266,7 +266,7 @@ def split_words(text: str) -> list[str]:
     )
 
 
-# 4. АНАЛИЗ ТОНАЛЬНОСТИ
+#  Анализ тональности.
 
 
 def analyze_sentiment(
@@ -290,8 +290,7 @@ def analyze_sentiment(
 
     note = ""
 
-    # Если текст не на английском,
-    # переводим его на английский
+    # Если текст не на английском, переводим его на английский.
 
     if lang != "en":
 
@@ -331,7 +330,7 @@ def analyze_sentiment(
                 + str(error)
             )
 
-    # Анализируем текст через TextBlob
+    # Анализируем текст через TextBlob.
 
     blob = TextBlob(
         translated_text
@@ -343,7 +342,7 @@ def analyze_sentiment(
         blob.sentiment.subjectivity * 100
     )
 
-    # Определяем категорию тональности
+    # Определяем категорию тональности.
 
     if polarity > 0.1:
 
@@ -365,7 +364,7 @@ def analyze_sentiment(
 
 
 
-# 5. ОСНОВНАЯ СТАТИСТИКА ТЕКСТА
+#  Основная статистика текста.
 
 
 def get_text_stats(text: str) -> dict:
@@ -392,8 +391,7 @@ def get_text_stats(text: str) -> dict:
 
     lang = detect_language(text)
 
-    # Функции подсчёта слогов
-    # для разных языков
+    # Функции подсчёта слогов для разных языков.
 
     syllable_functions = {
         "ru": count_syllables_ru,
@@ -406,9 +404,7 @@ def get_text_stats(text: str) -> dict:
         lang
     )
 
-    # Если язык неизвестен,
-    # используем английский алгоритм
-    # как резервный вариант
+    # Если язык неизвестен, используем английский алгоритм как резервный вариант.
 
     if syllable_function is None:
 
@@ -419,7 +415,7 @@ def get_text_stats(text: str) -> dict:
         for word in words
     )
 
-    # Средняя длина предложения
+    # Средняя длина предложения.
 
     if sentence_count:
 
@@ -432,7 +428,7 @@ def get_text_stats(text: str) -> dict:
 
         avg_sentence_length = 0.0
 
-    # Средняя длина слова
+    # Средняя длина слова.
 
     if word_count:
 
@@ -461,7 +457,7 @@ def get_text_stats(text: str) -> dict:
 
 
 
-# 6. ИНДЕКС ФЛЕША
+#  Индекс Флеша.
 
 
 def flesch_index(
@@ -530,7 +526,7 @@ def flesch_index(
 
 
 
-# 7. ИНТЕРПРЕТАЦИЯ ИНДЕКСА ФЛЕША
+#  Интерпритация индекса Флеша.
 
 
 def interpret_flesch(
@@ -571,7 +567,7 @@ def interpret_flesch(
 
 
 
-# 8. ИНДЕКС ФЛЕША-КИНКЕЙДА
+#  Индекс Флеша-Кинкейда.
 
 def flesch_kincaid(
     stats: dict,
@@ -606,7 +602,7 @@ def flesch_kincaid(
 
 
 
-# 9. ЛЕКСИЧЕСКОЕ РАЗНООБРАЗИЕ
+#  Лексическое разнообразие.
 
 
 def lexical_diversity(
@@ -639,7 +635,7 @@ def lexical_diversity(
 
 
 
-# 10. ПЛОТНОСТЬ РЕДКИХ СЛОВ
+#  Плотность редких слов.
 
 
 def rare_word_density(
@@ -683,7 +679,7 @@ def rare_word_density(
 
 
 
-# 11. ЗАГРУЗКА ЧАСТОТНОГО СЛОВАРЯ
+#  Загрузка частотного словаря.
 
 
 def load_frequency_dictionary(
@@ -727,7 +723,7 @@ def load_frequency_dictionary(
 
 
 
-# 12. ПРОВЕРКА ТЕКСТА
+#  ПРОВЕРКА ТЕКСТА
 
 def validate_text(
     text: str
@@ -752,7 +748,7 @@ def validate_text(
 
 
 
-# 13. ПОЛНЫЙ АНАЛИЗ ТЕКСТА
+#  Полный анализ текста.
 
 
 def analyze_text(
@@ -763,7 +759,7 @@ def analyze_text(
     Выполняет полный анализ текста.
     """
 
-    # Проверяем текст
+    # Проверяем текст.
 
     if not validate_text(text):
 
@@ -775,42 +771,41 @@ def analyze_text(
                 "(10000 символов)."
         }
 
-    # Если словарь не передан,
-    # используем пустой словарь
+    # Если словарь не передан, используем пустой словарь.
 
     if freq_dict is None:
 
         freq_dict = {}
 
-    # Определение языка
+    # Определение языка.
 
     lang = detect_language(text)
 
-    # Статистика
+    # Статистика.
 
     stats = get_text_stats(text)
 
-    # Индекс Флеша
+    # Индекс Флеша.
 
     flesch = flesch_index(
         stats,
         lang
     )
 
-    # Интерпретация Флеша
+    # Интерпретация Флеша.
 
     interpretation = interpret_flesch(
         flesch
     )
 
-    # Флеш-Кинкейд
+    # Флеш-Кинкейд.
 
     kincaid = flesch_kincaid(
         stats,
         lang
     )
 
-    # Тональность
+    # Тональность.
 
     sentiment, subjectivity, sentiment_note = (
         analyze_sentiment(
@@ -819,20 +814,20 @@ def analyze_text(
         )
     )
 
-    # Лексическое разнообразие
+    # Лексическое разнообразие.
 
     diversity = lexical_diversity(
         text
     )
 
-    # Плотность редких слов
+    # Плотность редких слов.
 
     rare_density = rare_word_density(
         text,
         freq_dict
     )
 
-    # Возвращаем все результаты
+    # Возвращаем все результаты.
 
     return {
 
@@ -879,7 +874,7 @@ def analyze_text(
     }
 
 
-# 14. ВЫВОД РЕЗУЛЬТАТОВ
+#  Вывод результатов.
 
 def print_results(
     result: dict
@@ -1006,7 +1001,7 @@ def print_results(
     print("=" * 60)
 
 
-# 15. ЗАПУСК ПРОГРАММЫ
+#  Запуск программы.
 
 def main():
     """
@@ -1041,7 +1036,7 @@ def main():
     print()
     print("-" * 60)
 
-    # Ввод текста
+    # Ввод текста.
 
     print(
         "Введите текст для анализа."
@@ -1057,13 +1052,13 @@ def main():
         "Текст: "
     )
 
-    # Анализ
+    # Анализ.
 
     result = analyze_text(
         text
     )
 
-    # Вывод
+    # Вывод.
 
     print_results(
         result
