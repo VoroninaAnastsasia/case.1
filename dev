@@ -330,8 +330,11 @@ def analyzeSentiment(
                 + str(error)
             )
 
-    # Анализируем текст через TextBlob.
+    # Для английского текста перевод не нужен.
+    if lang == "en":
+        translated_text = text
 
+    # Анализируем текст через TextBlob.
     blob = TextBlob(
         translated_text
     )
@@ -379,9 +382,9 @@ def getTextStats(text: str) -> dict:
     - язык.
     """
 
-    sentences = split_sentences(text)
+    sentences = splitSentences(text)
 
-    words = split_words(text)
+    words = splitWords(text)
 
     word_count = len(words)
 
@@ -389,15 +392,15 @@ def getTextStats(text: str) -> dict:
 
     # Определяем язык
 
-    lang = detect_language(text)
+    lang = detectLanguage(text)
 
     # Функции подсчёта слогов для разных языков.
 
     syllable_functions = {
-        "ru": count_syllables_ru,
-        "en": count_syllables_en,
-        "de": count_syllables_de,
-        "fr": count_syllables_fr
+        "ru": countSyllablesRu,
+        "en": countSyllablesEn,
+        "de": countSyllablesDe,
+        "fr": countSyllablesFr
     }
 
     syllable_function = syllable_functions.get(
@@ -408,7 +411,7 @@ def getTextStats(text: str) -> dict:
 
     if syllable_function is None:
 
-        syllable_function = count_syllables_en
+        syllable_function = countSyllablesEn
 
     total_syllables = sum(
         syllable_function(word)
@@ -523,7 +526,7 @@ def fleschIndex(stats, lang):
 
 
 
-#  Интерпритация индекса Флеша.
+#  Интерпретация индекса Флеша.
 
 
 def interpretFlesch(score):
@@ -607,7 +610,7 @@ def lexicalDiversity(text):
     количество всех слов.
     """
 
-    words = split_words(text)
+    words = splitWords(text)
 
     if not words:
 
@@ -639,7 +642,7 @@ def rareWordDensity(text, freq_dict):
     возвращается None.
     """
 
-    words = split_words(text)
+    words = splitWords(text)
 
     if not words:
 
@@ -741,7 +744,7 @@ def analyzeText(text, freq_dict):
 
     # Проверяем текст.
 
-    if not validate_text(text):
+    if not validateText(text):
 
         return {
             "error":
@@ -759,28 +762,28 @@ def analyzeText(text, freq_dict):
 
     # Определение языка.
 
-    lang = detect_language(text)
+    lang = detectLanguage(text)
 
     # Статистика.
 
-    stats = get_text_stats(text)
+    stats = getTextStats(text)
 
     # Индекс Флеша.
 
-    flesch = flesch_index(
+    flesch = fleschIndex(
         stats,
         lang
     )
 
     # Интерпретация Флеша.
 
-    interpretation = interpret_flesch(
+    interpretation = interpretFlesch(
         flesch
     )
 
     # Флеш-Кинкейд.
 
-    kincaid = flesch_kincaid(
+    kincaid = fleschKincaid(
         stats,
         lang
     )
@@ -788,7 +791,7 @@ def analyzeText(text, freq_dict):
     # Тональность.
 
     sentiment, subjectivity, sentiment_note = (
-        analyze_sentiment(
+        analyzeSentiment(
             text,
             lang
         )
@@ -796,13 +799,13 @@ def analyzeText(text, freq_dict):
 
     # Лексическое разнообразие.
 
-    diversity = lexical_diversity(
+    diversity = lexicalDiversity(
         text
     )
 
     # Плотность редких слов.
 
-    rare_density = rare_word_density(
+    rare_density = rareWordDensity(
         text,
         freq_dict
     )
@@ -828,13 +831,13 @@ def analyzeText(text, freq_dict):
         "avg_word_length":
             stats["avg_word_length"],
 
-        "flesch_index":
+        "fleschIndex":
             flesch,
 
         "flesch_interpretation":
             interpretation,
 
-        "flesch_kincaid":
+        "fleschKincaid":
             kincaid,
 
         "sentiment":
@@ -846,10 +849,10 @@ def analyzeText(text, freq_dict):
         "sentiment_note":
             sentiment_note,
 
-        "lexical_diversity":
+        "lexicalDiversity":
             diversity,
 
-        "rare_word_density":
+        "rareWordDensity":
             rare_density
     }
 
@@ -913,7 +916,7 @@ def printResults(result):
 
     print(
         f"Индекс Флеша: "
-        f"{result['flesch_index']:.2f}"
+        f"{result['fleschIndex']:.2f}"
     )
 
     print(
@@ -923,7 +926,7 @@ def printResults(result):
 
     print(
         f"Индекс Флеша-Кинкейда: "
-        f"{result['flesch_kincaid']:.2f}"
+        f"{result['fleschKincaid']:.2f}"
     )
 
     print()
@@ -950,11 +953,11 @@ def printResults(result):
 
     print(
         f"Лексическое разнообразие: "
-        f"{result['lexical_diversity']:.2f}"
+        f"{result['lexicalDiversity']:.2f}"
     )
 
     rare_density = (
-        result["rare_word_density"]
+        result["rareWordDensity"]
     )
 
     if rare_density is None:
@@ -1031,21 +1034,18 @@ def main():
     )
 
     # Анализ.
+    freq_dict = {}
 
-    result = analyze_text(
-        text
+    result = analyzeText(
+        text,
+        freq_dict
     )
 
     # Вывод.
 
-    print_results(
+    printResults(
         result
     )
 
 if __name__ == "__main__":
     main()
-
-    print()
-    print("-" * 60)
-    print("ДОПОЛНИТЕЛЬНЫЕ МЕТРИКИ")
-    print("-" * 60)
