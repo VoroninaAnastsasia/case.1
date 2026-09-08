@@ -12,7 +12,7 @@ DetectorFactory.seed = 0
 
 #  Подсчет слогов.
 
-def count_syllables_ru(text: str) -> int:
+def countSyllablesRu(text):
     """
     Подсчёт слогов в русском тексте.
 
@@ -35,7 +35,7 @@ def count_syllables_ru(text: str) -> int:
     )
 
 
-def count_syllables_en(text: str) -> int:
+def countSyllablesEn(text):
     """
     Подсчёт слогов в английском тексте.
 
@@ -94,7 +94,7 @@ def count_syllables_en(text: str) -> int:
     return max(1, count)
 
 
-def count_syllables_de(text: str) -> int:
+def countSyllablesDe(text):
     """
     Подсчёт слогов в немецком тексте.
 
@@ -147,7 +147,7 @@ def count_syllables_de(text: str) -> int:
     return max(1, count)
 
 
-def count_syllables_fr(text: str) -> int:
+def countSyllablesFr(text):
     """
     Подсчёт слогов во французском тексте.
 
@@ -207,7 +207,7 @@ def count_syllables_fr(text: str) -> int:
 
 #  Определение языка.
 
-def detect_language(text: str) -> str:
+def detectLanguage(text): 
     """
     Определяет язык текста с помощью langdetect.
 
@@ -234,7 +234,7 @@ def detect_language(text: str) -> str:
 #  Разбиение текста на предложения и слова.
 
 
-def split_sentences(text: str) -> list[str]:
+def splitSentences(text):
     """
     Разбивает текст на предложения.
 
@@ -254,7 +254,7 @@ def split_sentences(text: str) -> list[str]:
     ]
 
 
-def split_words(text: str) -> list[str]:
+def splitWords(text: str) -> list[str]:
     """
     Извлекает слова из текста.
     """
@@ -269,7 +269,7 @@ def split_words(text: str) -> list[str]:
 #  Анализ тональности.
 
 
-def analyze_sentiment(
+def analyzeSentiment(
     text: str,
     lang: str
 ) -> tuple[str, float, str]:
@@ -367,7 +367,7 @@ def analyze_sentiment(
 #  Основная статистика текста.
 
 
-def get_text_stats(text: str) -> dict:
+def getTextStats(text: str) -> dict:
     """
     Вычисляет статистику текста:
 
@@ -460,10 +460,7 @@ def get_text_stats(text: str) -> dict:
 #  Индекс Флеша.
 
 
-def flesch_index(
-    stats: dict,
-    lang: str
-) -> float:
+def fleschIndex(stats, lang):
     """
     Вычисляет индекс Флеша.
 
@@ -529,9 +526,7 @@ def flesch_index(
 #  Интерпритация индекса Флеша.
 
 
-def interpret_flesch(
-    score: float
-) -> str:
+def interpretFlesch(score):
     """
     Интерпретирует индекс Флеша
     согласно таблице из задания.
@@ -569,10 +564,7 @@ def interpret_flesch(
 
 #  Индекс Флеша-Кинкейда.
 
-def flesch_kincaid(
-    stats: dict,
-    lang: str
-) -> float:
+def fleschKincaid(stats, lang):
     """
     Вычисляет индекс Флеша-Кинкейда.
 
@@ -605,9 +597,7 @@ def flesch_kincaid(
 #  Лексическое разнообразие.
 
 
-def lexical_diversity(
-    text: str
-) -> float:
+def lexicalDiversity(text):
     """
     Вычисляет лексическое разнообразие.
 
@@ -638,10 +628,7 @@ def lexical_diversity(
 #  Плотность редких слов.
 
 
-def rare_word_density(
-    text: str,
-    freq_dict: dict
-) -> float | None:
+def rareWordDensity(text, freq_dict):
     """
     Вычисляет плотность редких слов.
 
@@ -682,9 +669,7 @@ def rare_word_density(
 #  Загрузка частотного словаря.
 
 
-def load_frequency_dictionary(
-    filename: str
-) -> dict:
+def load_frequency_dictionary(filename): 
     """
     Загружает частотный словарь из текстового файла.
 
@@ -725,9 +710,7 @@ def load_frequency_dictionary(
 
 #  ПРОВЕРКА ТЕКСТА
 
-def validate_text(
-    text: str
-) -> bool:
+def validateText(text):
     """
     Проверяет введённый текст.
 
@@ -751,10 +734,7 @@ def validate_text(
 #  Полный анализ текста.
 
 
-def analyze_text(
-    text: str,
-    freq_dict: dict | None = None
-) -> dict:
+def analyzeText(text, freq_dict):
     """
     Выполняет полный анализ текста.
     """
@@ -876,9 +856,7 @@ def analyze_text(
 
 #  Вывод результатов.
 
-def print_results(
-    result: dict
-) -> None:
+def printResults(result):
     """
     Красиво выводит результаты анализа.
     """
