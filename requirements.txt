@@ -1,0 +1,6 @@
+langdetect
+textblob
+deep-translator
+pytest
+pytest-cov
+httpx
