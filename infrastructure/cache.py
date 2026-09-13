@@ -1,10 +1,10 @@
-import hashlib
-import json
+import hashlib, json, redis
 from dataclasses import asdict
-
-import redis
-
 from domain.types import AnalysisResult
+
+
+# Единственное подключение к Redis (создаётся один раз).
+redisClient = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 
 def textHash(text):
@@ -12,30 +12,34 @@ def textHash(text):
   return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
-def getCachedResult(redisClient, text):
+def getCachedResult(text):
   # Пытается получить результат анализа из кэша.
-  # Возвращает dict или None, если в кэше ничего нет.
-  key = textHash(text)
-  data = redisClient.get(key)
-  if data is None:
+  # Возвращает dict или None.
+  try:
+    key = textHash(text)
+    data = redisClient.get(key)
+    if data is None:
+      return None
+    return json.loads(data)
+  except redis.RedisError:
+    # Если Redis недоступен, работаем без кэша.
     return None
-  return json.loads(data)
 
 
-def setCachedResult(redisClient, text, result, ttlSeconds=3600):
+def setCachedResult(text, result, ttlSeconds=3600):
   # Сохраняет результат анализа в кэш на ttlSeconds секунд.
-  # result должен быть экземпляром AnalysisResult или dict.
-  key = textHash(text)
-
-  if isinstance(result, AnalysisResult):
-    payload = asdict(result)
-  else:
-    payload = result
-
-  # Преобразуем Enum-значения в строки для корректной сериализации в JSON.
-  if 'language' in payload and hasattr(payload['language'], 'name'):
-    payload['language'] = payload['language'].name
-  if 'polarity' in payload and hasattr(payload['polarity'], 'name'):
-    payload['polarity'] = payload['polarity'].name
-
-  redisClient.setex(key, ttlSeconds, json.dumps(payload))
+  try:
+    key = textHash(text)
+    if isinstance(result, AnalysisResult):
+      payload = asdict(result)
+    else:
+      payload = result
+    # Преобразуем Enum-значения в строки для JSON.
+    if 'language' in payload and hasattr(payload['language'], 'name'):
+      payload['language'] = payload['language'].name
+    if 'polarity' in payload and hasattr(payload['polarity'], 'name'):
+      payload['polarity'] = payload['polarity'].name
+    redisClient.setex(key, ttlSeconds, json.dumps(payload))
+  except redis.RedisError:
+    # Если Redis недоступен, просто не кэшируем.
+    pass
