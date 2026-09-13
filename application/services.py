@@ -1,22 +1,18 @@
-from infrastructure.syllable_counters import (
-  countSyllablesRu,
-  countSyllablesEn,
-  countSyllablesDe,
-  countSyllablesFr
-)
-
-from infrastructure.language_detector import detectLanguage
-from infrastructure.sentiment import analyzeSentiment
+from infrastructure.syllable_counters import countSyllablesRu, countSyllablesEn, countSyllablesDe, countSyllablesFr
+from infrastructure.flesch_calculators import fleschIndex
 
 
-def getServices():
-  return {
-    "language_detector": detectLanguage,
-    "syllable_counters": {
-      "ru": countSyllablesRu,
-      "en": countSyllablesEn,
-      "de": countSyllablesDe,
-      "fr": countSyllablesFr
-    },
-    "sentiment_analyzer": analyzeSentiment
+def getSyllableCounter(lang):
+  """Возвращает функцию подсчёта слогов для указанного языка."""
+  counters = {
+    'ru': countSyllablesRu,
+    'en': countSyllablesEn,
+    'de': countSyllablesDe,
+    'fr': countSyllablesFr
   }
+  return counters.get(lang, countSyllablesEn)
+
+
+def getFleschCalculator(lang):
+  """Возвращает функцию расчёта индекса Флеша для языка."""
+  return fleschIndex
