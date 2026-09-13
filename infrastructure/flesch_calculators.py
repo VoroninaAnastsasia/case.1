@@ -19,64 +19,41 @@ def fleschIndex(stats: dict, lang: str) -> float:
     score = A - B * (words / sentences) - C * (syllables / words)
     return score
 
-def interpretFlesch(score):
+def interpretFlesch(score: float) -> str:
     """
-    Интерпретирует индекс Флеша
-    согласно таблице из задания.
+    Интерпретирует индекс Флеша согласно таблице.
     """
-
     if score > 80:
-
-        return (
-            "Очень легко "
-            "(для младших школьников)"
-        )
-
+        return 'Очень легко (для младших школьников)'
     elif score > 50:
-
-        return (
-            "Просто "
-            "(для школьников)"
-        )
-
+        return 'Просто (для школьников)'
     elif score > 25:
-
-        return (
-            "Немного трудно "
-            "(для студентов)"
-        )
-
+        return 'Немного трудно (для студентов)'
     else:
+        return 'Трудно (для выпускников вузов)'def interpretFlesch(score: float) -> str:
+    """
+    Интерпретирует индекс Флеша согласно таблице из задания.
+    """
+    if score > 80:
+        return 'Очень легко (для младших школьников)'
+    elif score > 50:
+        return 'Просто (для школьников)'
+    elif score > 25:
+        return 'Немного трудно (для студентов)'
+    else:
+        return 'Трудно (для выпускников вузов)' 
 
-        return (
-            "Трудно "
-            "(для выпускников вузов)"
-        )
-
-def fleschKincaid(stats, lang):
+def fleschKincaid(stats: dict, lang: str) -> float:
     """
     Вычисляет индекс Флеша-Кинкейда.
 
     Формула использует среднюю длину предложения
     и среднее количество слогов на слово.
     """
-
-    words = stats["words"]
-
-    sentences = stats["sentences"]
-
-    syllables = stats["syllables"]
-
+    words = stats['words']
+    sentences = stats['sentences']
+    syllables = stats['syllables']
     if words == 0 or sentences == 0:
-
         return 0.0
-
-    score = (
-        0.39
-        * (words / sentences)
-        + 11.8
-        * (syllables / words)
-        - 15.59
-    )
-
+    score = 0.39 * (words / sentences) + 11.8 * (syllables / words) - 15.59
     return score
