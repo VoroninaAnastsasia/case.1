@@ -1,0 +1,12 @@
+[run]
+omit =
+    */tests/*
+    */test_*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def printResults
+    def main
+    if __name__ == .__main__.:
+    print()
