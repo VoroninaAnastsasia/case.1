@@ -103,9 +103,9 @@ def computeRareWordDensity(text, freqDict):
 def analyzeText(text, freqDict=None):
   # Полный анализ текста: язык, статистика, Флеш, тональность, метрики.
   if not text or not text.strip():
-    return {'error': 'Текст пустой.'}
+    raise ValueError("Текст пустой.")
   if len(text) > 10000:
-    return {'error': 'Текст превышает допустимый размер (10000 символов).'}
+    raise ValueError("Текст превышает допустимый размер (10000 символов).")
 
   if freqDict is None:
     freqDict = {}
