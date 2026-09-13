@@ -1,19 +1,13 @@
 import re
 
 from domain.types import Language, Polarity, TextStats, AnalysisResult
-from infrastructure.syllable_counters import (
-  countSyllablesRu,
-  countSyllablesEn,
-  countSyllablesDe,
-  countSyllablesFr
-)
-from infrastructure.flesch_calculators import (
-  fleschIndex,
-  interpretFlesch,
-  fleschKincaid
-)
+from infrastructure.syllable_counters import countSyllablesRu, countSyllablesEn, countSyllablesDe, countSyllablesFr
+from infrastructure.flesch_calculators import fleschIndex, interpretFlesch, fleschKincaid
 from infrastructure.sentiment import analyzeSentiment
 from infrastructure.language_detector import detectLanguage
+from infrastructure.text_utils import splitSentences, splitWords
+from infrastructure.cache import getCachedResult, setCachedResult
+from application.services import getSyllableCounter
 
 
 # Сопоставление строки языка с Enum-значением.
@@ -24,7 +18,6 @@ LANGUAGE_MAP = {
   'fr': Language.FR
 }
 
-
 # Сопоставление строки тональности с Enum-значением.
 POLARITY_MAP = {
   'Позитивная': Polarity.POSITIVE,
@@ -33,43 +26,18 @@ POLARITY_MAP = {
 }
 
 
-def splitSentences(text):
-  # Разбивает текст на предложения по знакам . ! ?
-  sentences = re.split(r'[.!?]+', text)
-  return [s.strip() for s in sentences if s.strip()]
-
-
-def splitWords(text):
-  # Извлекает слова из текста.
-  return re.findall(r'\b[\wёЁа-яА-Яa-zA-Z]+\b', text, re.UNICODE)
-
-
-def getSyllableCounter(lang):
-  # Возвращает функцию подсчёта слогов для указанного языка.
-  counters = {
-    'ru': countSyllablesRu,
-    'en': countSyllablesEn,
-    'de': countSyllablesDe,
-    'fr': countSyllablesFr
-  }
-  return counters.get(lang, countSyllablesEn)
-
-
-def computeStats(text, syllableCounter):
-  # Вычисляет статистику текста: предложения, слова, слоги, средние длины.
+def computeStats(text, lang):
+  """Вычисляет статистику текста: предложения, слова, слоги, средние длины."""
   sentences = splitSentences(text)
   words = splitWords(text)
+  syllableCounter = getSyllableCounter(lang)
 
   wordCount = len(words)
   sentenceCount = len(sentences)
   totalSyllables = sum(syllableCounter(w) for w in words)
 
   avgSentenceLength = wordCount / sentenceCount if sentenceCount else 0.0
-
-  if wordCount:
-    avgWordSyllables = totalSyllables / wordCount
-  else:
-    avgWordSyllables = 0.0
+  avgWordSyllables = totalSyllables / wordCount if wordCount else 0.0
 
   return TextStats(
     sentence_count=sentenceCount,
@@ -81,7 +49,7 @@ def computeStats(text, syllableCounter):
 
 
 def computeLexicalDiversity(text):
-  # Вычисляет лексическое разнообразие (уникальные / все слова).
+  """Вычисляет лексическое разнообразие (уникальные / все слова)."""
   words = splitWords(text)
   if not words:
     return 0.0
@@ -90,7 +58,7 @@ def computeLexicalDiversity(text):
 
 
 def computeRareWordDensity(text, freqDict):
-  # Вычисляет плотность редких слов (нет в частотном словаре).
+  """Вычисляет плотность редких слов (нет в частотном словаре)."""
   words = splitWords(text)
   if not words:
     return 0.0
@@ -101,29 +69,32 @@ def computeRareWordDensity(text, freqDict):
 
 
 def analyzeText(text, freqDict=None):
-  # Полный анализ текста: язык, статистика, Флеш, тональность, метрики.
+  """Полный анализ текста: язык, статистика, Флеш, тональность, метрики."""
   if not text or not text.strip():
-    raise ValueError("Текст пустой.")
+    raise ValueError('Текст пустой.')
   if len(text) > 10000:
-    raise ValueError("Текст превышает допустимый размер (10000 символов).")
+    raise ValueError('Текст превышает допустимый размер (10000 символов).')
+
+  # Проверяем кэш.
+  cached = getCachedResult(text)
+  if cached is not None:
+    return cached
 
   if freqDict is None:
     freqDict = {}
 
   lang = detectLanguage(text)
-  counter = getSyllableCounter(lang)
-  stats = computeStats(text, counter)
+  stats = computeStats(text, lang)
 
-  flesch = fleschIndex(
-    {'words': stats.word_count, 'sentences': stats.sentence_count, 'syllables': stats.syllable_count},
-    lang
-  )
+  statsDict = {
+    'words': stats.word_count,
+    'sentences': stats.sentence_count,
+    'syllables': stats.syllable_count
+  }
+
+  flesch = fleschIndex(statsDict, lang)
   interpretation = interpretFlesch(flesch)
-
-  kincaid = fleschKincaid(
-    {'words': stats.word_count, 'sentences': stats.sentence_count, 'syllables': stats.syllable_count},
-    lang
-  )
+  kincaid = fleschKincaid(statsDict, lang)
 
   sentimentStr, subjectivity, sentimentNote = analyzeSentiment(text, lang)
   polarity = POLARITY_MAP.get(sentimentStr, Polarity.NEUTRAL)
@@ -143,9 +114,12 @@ def analyzeText(text, freqDict=None):
     stats=stats
   )
 
+  # Сохраняем в кэш.
+  setCachedResult(text, result)
+
   return result
 
 
 def analyzeBatch(texts, freqDict=None):
-  # Анализирует массив текстов.
+  """Анализирует массив текстов."""
   return [analyzeText(t, freqDict) for t in texts]
