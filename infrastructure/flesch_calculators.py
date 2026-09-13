@@ -1,62 +1,22 @@
-def fleschIndex(stats, lang):
+def fleschIndex(stats: dict, lang: str) -> float:
     """
     Вычисляет индекс Флеша.
 
     Коэффициенты зависят от языка.
     """
-
-    words = stats["words"]
-
-    sentences = stats["sentences"]
-
-    syllables = stats["syllables"]
-
+    words = stats['words']
+    sentences = stats['sentences']
+    syllables = stats['syllables']
     if words == 0 or sentences == 0:
-
         return 0.0
-
     coefficients = {
-
-        "en": (
-            206.835,
-            1.015,
-            84.6
-        ),
-
-        "ru": (
-            206.835,
-            1.3,
-            60.1
-        ),
-
-        "de": (
-            206.835,
-            0.942,
-            82.3
-        ),
-
-        "fr": (
-            207.0,
-            1.015,
-            73.6
-        )
+        'en': (206.835, 1.015, 84.6),
+        'ru': (206.835, 1.3, 60.1),
+        'de': (206.835, 0.942, 82.3),
+        'fr': (207.0, 1.015, 73.6)
     }
-
-    A, B, C = coefficients.get(
-        lang,
-        coefficients["en"]
-    )
-
-    score = (
-        A
-        - B * (
-            words / sentences
-        )
-        - C * (
-            syllables / words
-        )
-    )
-
+    A, B, C = coefficients.get(lang, coefficients['en'])
+    score = A - B * (words / sentences) - C * (syllables / words)
     return score
 
 def interpretFlesch(score):
