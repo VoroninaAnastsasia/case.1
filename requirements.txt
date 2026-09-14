@@ -6,3 +6,6 @@ pytest-cov
 httpx
 locust
 fakeredis
+fastapi
+uvicorn
+pydantic
