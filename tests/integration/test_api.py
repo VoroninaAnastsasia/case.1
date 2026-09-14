@@ -6,18 +6,22 @@ client = TestClient(app)
 
 
 class Test_RootEndpoint:
-  # Проверяет корневой эндпоинт.
+  # Проверяет корневой эндпоинт (веб-интерфейс).
 
   def test_root_returns_200(self):
     # Корневой эндпоинт отвечает 200.
     response = client.get('/')
     assert response.status_code == 200
 
-  def test_root_has_message(self):
-    # Ответ содержит поле message.
+  def test_root_returns_html(self):
+    # Корневой эндпоинт возвращает HTML-страницу.
     response = client.get('/')
-    data = response.json()
-    assert 'message' in data
+    assert 'text/html' in response.headers['content-type']
+
+  def test_root_contains_title(self):
+    # HTML-страница содержит заголовок веб-интерфейса.
+    response = client.get('/')
+    assert 'Анализ текста' in response.text
 
 
 class Test_AnalyzeEndpoint:
