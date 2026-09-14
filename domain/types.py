@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
 
 class Language(Enum):
-    EN = auto()
-    RU = auto()
-    DE = auto()
-    FR = auto()
+  EN = 'en'
+  RU = 'ru'
+  DE = 'de'
+  FR = 'fr'
 
 class Polarity(Enum):
     POSITIVE = "positive"
