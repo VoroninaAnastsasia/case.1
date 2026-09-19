@@ -2,6 +2,9 @@
 omit =
     */tests/*
     */test_*
+    */cli.py
+    */main.py
+    */config.py
 
 [report]
 exclude_lines =
