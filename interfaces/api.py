@@ -102,16 +102,11 @@ def analyze(request: AnalysisRequest):
     return result
 
   except ValueError as error:
-    raise HTTPException(
-      status_code=400,
-      detail=str(error)
-    )
+    raise HTTPException(status_code=400,
+                        detail="Текст не подходит для анализа")
 
   except Exception:
-    raise HTTPException(
-      status_code=500,
-      detail="Внутренняя ошибка сервера"
-    )
+    raise HTTPException(status_code=500,detail="Внутренняя ошибка сервера")
 
 
 @app.post("/analyze-batch", response_model=list[AnalysisResponse])
@@ -122,13 +117,8 @@ def analyze_batch(request: BatchRequest):
     return result
 
   except ValueError as error:
-    raise HTTPException(
-      status_code=400,
-      detail=str(error)
-    )
+    raise HTTPException(status_code=400,
+                        detail="Текст не подходит для анализа")
 
   except Exception:
-    raise HTTPException(
-      status_code=500,
-      detail="Внутренняя ошибка сервера"
-    )
+    raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
