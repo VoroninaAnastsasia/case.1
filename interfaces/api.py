@@ -88,7 +88,7 @@ class AnalysisResponse(BaseModel):
 def resultToResponse(result):
   """Преобразует AnalysisResult в словарь для ответа API."""
   return {
-    'language': result.language.name,
+    'language': result.language.name.lower(),
     'flesch_index': result.flesch_index,
     'flesch_kincaid': result.flesch_kincaid,
     'interpretation': result.interpretation,
