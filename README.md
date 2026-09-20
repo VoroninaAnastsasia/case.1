@@ -1,10 +1,8 @@
 # Text Analyzer
 
- Описание
-
 Сервис для анализа текста: определение языка, тональности, субъективности, читаемости (Flesch Reading Ease), лексического разнообразия и плотности редких слов.
 
-Возможности
+## Возможности
 
 - Определение языка: русский, английский, немецкий, французский.
 - Анализ тональности: позитивная, нейтральная, негативная.
@@ -18,24 +16,24 @@
 - CLI на Click с командой analyze.
 - Веб-интерфейс на HTML и JavaScript.
 
-Стек технологий
+## Стек технологий
 
 - Python 3.11+
-- FastAPI и Uvicorn
-- Pydantic
-- Redis
-- TextBlob, LangDetect, Deep-Translator
-- pytest, coverage
-- locust
+- FastAPI и Uvicorn (веб-сервер)
+- Pydantic (валидация данных)
+- Redis (кэш)
+- TextBlob, LangDetect, Deep-Translator (анализ текста)
+- pytest, coverage (тесты)
+- locust (нагрузочное тестирование)
 
-Установка
+## Установка
 
 Выполните команды:
 
 pip install -r requirements.txt
 python -m textblob.download_corpora
 
-Запуск
+## Запуск
 
 Запустите веб-сервер командой:
 
@@ -46,7 +44,7 @@ python main.py
 - Веб-интерфейс: http://127.0.0.1:8000/
 - Swagger UI: http://127.0.0.1:8000/docs
 
-# CLI
+## CLI
 
 Примеры команд:
 
@@ -54,27 +52,27 @@ python interfaces/cli.py analyze --text "This is a simple test."
 python interfaces/cli.py analyze --file text.txt
 python interfaces/cli.py analyze --batch-file texts.txt
 
-# API
+## API
 
-POST /analyze — анализ одного текста.
+POST /analyze - анализ одного текста.
 
 Запрос:
 {"text": "This is a simple test."}
 
-POST /analyze-batch — анализ массива текстов.
+POST /analyze-batch - анализ массива текстов.
 
 Запрос:
 {"texts": ["First text.", "Second text."]}
 
-# Тесты
+## Тесты
 
 Запуск тестов с покрытием:
 
 pytest --cov=. --cov-report=term-missing
 
-Требуемое покрытие — не менее 80 процентов.
+Требуемое покрытие - не менее 80 процентов.
 
-# Нагрузочное тестирование
+## Нагрузочное тестирование
 
 Запуск Locust:
 
@@ -82,21 +80,21 @@ locust -f locustfile.py --host=http://127.0.0.1:8000
 
 Откройте http://localhost:8089 в браузере.
 
-# Docker
+## Docker
 
 Запуск через Docker Compose:
 
 docker-compose up
 
-# Структура проекта
+## Структура проекта
 
 case.1/
-  application/     — сценарии использования
-  domain/          — типы данных
-  infrastructure/  — реализации
-  interfaces/      — API и CLI
-  static/          — веб-интерфейс
-  tests/           — тесты
-  main.py          — точка входа FastAPI
-  Dockerfile       — сборка контейнера
-  requirements.txt — зависимости
+  application/     - сценарии использования
+  domain/          - типы данных
+  infrastructure/  - реализации (слоги, Флеш, тональность, кэш)
+  interfaces/      - API и CLI
+  static/          - веб-интерфейс
+  tests/           - тесты
+  main.py          - точка входа FastAPI
+  Dockerfile       - сборка контейнера
+  requirements.txt - зависимости
