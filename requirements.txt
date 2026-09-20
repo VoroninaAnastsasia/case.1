@@ -1,11 +1,12 @@
 langdetect
 textblob
 deep-translator
+fastapi
+uvicorn
+pydantic
+redis
 pytest
 pytest-cov
 httpx
 locust
 fakeredis
-fastapi
-uvicorn
-pydantic
