@@ -27,14 +27,12 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-MAX_BODY_SIZE = 100_000
-
+MAX_BODY_SIZE = 100000
 
 @app.middleware('http')
 async def logRequests(request: Request, call_next):
   """Логирует запросы и считает время ответа."""
   startTime = time.time()
-
   contentLength = request.headers.get('content-length')
   if contentLength and int(contentLength) > MAX_BODY_SIZE:
     return JSONResponse(
@@ -44,6 +42,7 @@ async def logRequests(request: Request, call_next):
 
   response = await call_next(request)
 
+  # Смотрим сколько времени заняла обработка запроса в мс. 
   durationMs = (time.time() - startTime) * 1000
   logger.info(f'{request.method} {request.url.path} -> {response.status_code} ({durationMs:.1f} ms)')
   response.headers['X-Process-Time-Ms'] = f'{durationMs:.1f}'
@@ -105,7 +104,6 @@ def resultToResponse(result):
 
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
-
 
 @app.get('/')
 def root():
