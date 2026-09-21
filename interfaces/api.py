@@ -4,6 +4,7 @@ import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from application.use_cases import analyzeText, analyzeBatch
@@ -17,6 +18,13 @@ app = FastAPI(
   title='Text Analyzer API',
   description='API для анализа текста',
   version='1.0.0'
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 MAX_BODY_SIZE = 100_000
