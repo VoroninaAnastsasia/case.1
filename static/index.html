@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="author" content="Воронина Анастасия, Санкина Анастасия, Леонова Алёна">
   <title>Анализ текста</title>
   <style>
     body {
@@ -51,6 +52,12 @@
       line-height: 1.6;
     }
 
+    #result p {
+      margin: 6px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #eee;
+    }
+
     .positive { color: green; font-weight: bold; }
     .negative { color: red; font-weight: bold; }
     .neutral  { color: gray; font-weight: bold; }
@@ -86,7 +93,23 @@
   </footer>
 
   <script>
-    // Функция отправляет текст на сервер и показывает результат
+    // Перевод кодов языка на русский
+    var languages = {
+      "en": "Английский",
+      "ru": "Русский",
+      "de": "Немецкий",
+      "fr": "Французский",
+      "es": "Испанский",
+      "it": "Итальянский"
+    };
+
+    // Перевод тональности на русский
+    var polarities = {
+      "positive": "Позитивный",
+      "negative": "Негативный",
+      "neutral":  "Нейтральный"
+    };
+
     function analyze() {
       var text = document.getElementById("text").value;
       var resultDiv = document.getElementById("result");
@@ -107,13 +130,35 @@
         return response.json();
       })
       .then(function(data) {
+        // язык: если не нашли в словаре — показываем код как есть
+        var lang = languages[data.language];
+        if (!lang) {
+          lang = data.language;
+        }
+
+        // тональность: перевод + класс для цвета
+        var pol = polarities[data.polarity];
+        if (!pol) {
+          pol = data.polarity;
+        }
+
+        var polClass = data.polarity;
+        if (polClass != "positive" && polClass != "negative") {
+          polClass = "neutral";
+        }
+
         var html = "";
-        html += "<p><b>Язык:</b> " + data.language + "</p>";
-        html += "<p><b>Тональность:</b> <span class='" + data.polarity + "'>" + data.polarity + "</span></p>";
+        html += "<p><b>Язык:</b> " + lang + "</p>";
+        html += "<p><b>Тональность:</b> <span class='" + polClass + "'>" + pol + "</span></p>";
         html += "<p><b>Субъективность:</b> " + Math.round(data.subjectivity * 100) + "%</p>";
+        html += "<p><b>Читаемость (индекс Флеша):</b> " + data.flesch_index.toFixed(1) + "</p>";
+        html += "<p><b>Уровень образования (Flesch-Kincaid):</b> " + data.flesch_kincaid.toFixed(1) + "</p>";
+        html += "<p><b>Разнообразие слов:</b> " + Math.round(data.lexical_diversity * 100) + "%</p>";
         html += "<p><b>Слов:</b> " + data.stats.word_count + "</p>";
         html += "<p><b>Предложений:</b> " + data.stats.sentence_count + "</p>";
+        html += "<p><b>Слогов:</b> " + data.stats.syllable_count + "</p>";
         html += "<p><b>Итог:</b> " + data.interpretation + "</p>";
+
         resultDiv.innerHTML = html;
       })
       .catch(function(error) {
