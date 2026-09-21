@@ -6,50 +6,38 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 800px;
+      max-width: 700px;
       margin: 30px auto;
       padding: 0 15px;
-      background: #f0f0f0;
-      color: #222;
+      background: #f5f5f5;
     }
 
     h1 {
-      color: #333;
       text-align: center;
+      color: #333;
     }
 
-    .block {
+    .card {
       background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
       padding: 15px;
+      border-radius: 5px;
       margin-bottom: 20px;
-    }
-
-    h2 {
-      margin-top: 0;
-      font-size: 18px;
-      color: #444;
     }
 
     textarea {
       width: 100%;
-      height: 90px;
+      height: 80px;
       padding: 8px;
       font-size: 14px;
-      border: 1px solid #bbb;
-      border-radius: 4px;
-      font-family: Arial, sans-serif;
     }
 
     button {
       margin-top: 10px;
-      padding: 8px 18px;
+      padding: 8px 16px;
       background: #4a90e2;
       color: white;
       border: none;
       border-radius: 4px;
-      font-size: 14px;
       cursor: pointer;
     }
 
@@ -57,37 +45,26 @@
       background: #357ab8;
     }
 
-    .result {
+    #result {
       margin-top: 15px;
       font-size: 14px;
-    }
-
-    .row {
-      padding: 5px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .row b {
-      color: #555;
-    }
-
-    .lang {
-      color: #4a90e2;
-      font-weight: bold;
+      line-height: 1.6;
     }
 
     .positive { color: green; font-weight: bold; }
     .negative { color: red; font-weight: bold; }
     .neutral  { color: gray; font-weight: bold; }
+    .error    { color: red; }
 
-    .error { color: red; }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 13px;
+      color: #666;
+    }
 
-    .one-result {
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 10px;
-      margin-bottom: 10px;
-      background: #fafafa;
+    footer a {
+      color: #4a90e2;
     }
   </style>
 </head>
@@ -95,81 +72,30 @@
 
   <h1>Анализ текста</h1>
 
-  <div class="block">
-    <h2>Один текст</h2>
-    <textarea id="text1"></textarea>
+  <div class="card">
+    <p>Введите текст для анализа:</p>
+    <textarea id="text"></textarea>
     <br>
-    <button onclick="analyzeOne()">Анализировать</button>
-    <div id="result1" class="result"></div>
+    <button onclick="analyze()">Анализировать</button>
+    <div id="result"></div>
   </div>
 
-  <div class="block">
-    <h2>Несколько текстов (каждый с новой строки)</h2>
-    <textarea id="text2"></textarea>
-    <br>
-    <button onclick="analyzeBatch()">Анализировать все</button>
-    <div id="result2" class="result"></div>
-  </div>
+  <footer>
+    Проект студентов: Воронина Анастасия, Санкина Анастасия, Леонова Алёна<br>
+    <a href="https://github.com/VoroninaAnastsasia/case.1" target="_blank">Ссылка на GitHub</a>
+  </footer>
 
   <script>
-    // Названия языков по коду, который возвращает сервер
-   var languages = {
-     "en": "Английский",
-     "ru": "Русский",
-     "de": "Немецкий",
-     "fr": "Французский"
-   };
+    // Функция отправляет текст на сервер и показывает результат
+    function analyze() {
+      var text = document.getElementById("text").value;
+      var resultDiv = document.getElementById("result");
 
-    // Перевод тональности на русский
-    var polarities = {
-      "positive": "Позитивный",
-      "negative": "Негативный",
-      "neutral":  "Нейтральный"
-    };
-
-    // Функция рисует один результат
-    function showResult(data, text) {
-      var lang = languages[data.language];
-      if (!lang) {
-        lang = "Код " + data.language;
+      if (text == "") {
+        resultDiv.innerHTML = "<span class='error'>Введите текст</span>";
+        return;
       }
 
-      var pol = polarities[data.polarity];
-      if (!pol) {
-        pol = data.polarity;
-      }
-
-      // класс для цвета тональности
-      var polClass = data.polarity;
-      if (polClass != "positive" && polClass != "negative") {
-        polClass = "neutral";
-      }
-
-      var html = "";
-
-      // если это батч - покажем исходный текст
-      if (text) {
-        html += "<div class='row'><b>Текст:</b> " + text + "</div>";
-      }
-
-      html += "<div class='row'><b>Язык:</b> <span class='lang'>" + lang + "</span></div>";
-      html += "<div class='row'><b>Тональность:</b> <span class='" + polClass + "'>" + pol + "</span></div>";
-      html += "<div class='row'><b>Субъективность:</b> " + Math.round(data.subjectivity * 100) + "%</div>";
-      html += "<div class='row'><b>Читаемость (Flesch):</b> " + data.flesch_index.toFixed(1) + "</div>";
-      html += "<div class='row'><b>Уровень образования:</b> " + data.flesch_kincaid.toFixed(1) + "</div>";
-      html += "<div class='row'><b>Разнообразие слов:</b> " + Math.round(data.lexical_diversity * 100) + "%</div>";
-      html += "<div class='row'><b>Предложений:</b> " + data.stats.sentence_count + "</div>";
-      html += "<div class='row'><b>Слов:</b> " + data.stats.word_count + "</div>";
-      html += "<div class='row'><b>Слогов:</b> " + data.stats.syllable_count + "</div>";
-      html += "<div class='row'><b>Итог:</b> " + data.interpretation + "</div>";
-
-      return html;
-    }
-
-    // Анализ одного текста
-    function analyzeOne() {
-      var text = document.getElementById("text1").value;
-      var resultDiv = document.getElementById("result1");
       resultDiv.innerHTML = "Загрузка...";
 
       fetch("/analyze", {
@@ -181,52 +107,13 @@
         return response.json();
       })
       .then(function(data) {
-        resultDiv.innerHTML = showResult(data);
-      })
-      .catch(function(error) {
-        resultDiv.innerHTML = "<span class='error'>Ошибка: " + error + "</span>";
-      });
-    }
-
-    // Анализ нескольких текстов
-    function analyzeBatch() {
-      var raw = document.getElementById("text2").value;
-      var resultDiv = document.getElementById("result2");
-
-      // разбиваем по строкам
-      var lines = raw.split("\n");
-      var texts = [];
-
-      // убираем пустые строки
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        if (line != "") {
-          texts.push(line);
-        }
-      }
-
-      if (texts.length == 0) {
-        resultDiv.innerHTML = "<span class='error'>Введите хотя бы один текст</span>";
-        return;
-      }
-
-      resultDiv.innerHTML = "Загрузка...";
-
-      fetch("/analyze-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texts: texts })
-      })
-      .then(function(response) {
-        return response.json();
-      })
-      .then(function(data) {
         var html = "";
-        for (var i = 0; i < data.length; i++) {
-          html += "<div class='one-result'>";
-          html += showResult(data[i], texts[i]);
-          html += "</div>";
-        }
+        html += "<p><b>Язык:</b> " + data.language + "</p>";
+        html += "<p><b>Тональность:</b> <span class='" + data.polarity + "'>" + data.polarity + "</span></p>";
+        html += "<p><b>Субъективность:</b> " + Math.round(data.subjectivity * 100) + "%</p>";
+        html += "<p><b>Слов:</b> " + data.stats.word_count + "</p>";
+        html += "<p><b>Предложений:</b> " + data.stats.sentence_count + "</p>";
+        html += "<p><b>Итог:</b> " + data.interpretation + "</p>";
         resultDiv.innerHTML = html;
       })
       .catch(function(error) {
