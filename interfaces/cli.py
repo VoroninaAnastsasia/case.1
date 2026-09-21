@@ -57,7 +57,7 @@ def analyze(text, filePath, batchPath, asJson):
   if sourcesCount > 1:
     raise click.UsageError('Можно указать только один источник: --text, --file или --batch-file')
 
-  # --- Анализ текста из аргумента ---
+  # Анализ текста из аргумента.
   if text is not None:
     result = analyzeText(text)
     if asJson:
@@ -65,7 +65,7 @@ def analyze(text, filePath, batchPath, asJson):
     else:
       printResult(result)
 
-  # --- Анализ текста из файла ---
+  # Анализ текста из файла.
   elif filePath is not None:
     try:
       with open(filePath, 'r', encoding='utf-8') as f:
@@ -79,7 +79,6 @@ def analyze(text, filePath, batchPath, asJson):
     else:
       printResult(result, sourceLabel=filePath)
 
-  # --- Пакетный анализ ---
   elif batchPath is not None:
     try:
       with open(batchPath, 'r', encoding='utf-8') as f:
